@@ -4,16 +4,15 @@ import openai
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+
 load_dotenv()
 
-# Create FastAPI app
 app = FastAPI()
 
-# Set OpenAI API key
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Serve the index.html file
+
 @app.get("/")
 async def serve_index():
     file_path = "./index.html"
@@ -21,7 +20,7 @@ async def serve_index():
         raise HTTPException(status_code=404, detail="index.html not found")
     return FileResponse(file_path)
 
-# Chat endpoint
+
 @app.post("/chat")
 async def chat(request: Request):
     data = await request.json()
