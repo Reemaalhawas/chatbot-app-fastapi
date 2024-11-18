@@ -16,7 +16,7 @@
             color: white;
         }
 
-        .container {
+        .chat-container {
             text-align: center;
             background: #1e1e1e;
             border-radius: 10px;
@@ -75,13 +75,34 @@
             overflow-y: auto;
         }
     </style>
+    <script>
+        async function handleChatSubmit() {
+            const userMessage = document.getElementById("messageInput").value;
+            const chatbotResponse = document.getElementById("responseOutput");
+            try {
+                const serverResponse = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: userMessage })
+                });
+                const responseData = await serverResponse.json();
+                if (serverResponse.ok) {
+                    chatbotResponse.innerText = responseData.reply;
+                } else {
+                    chatbotResponse.innerText = "Error: " + responseData.detail;
+                }
+            } catch (error) {
+                chatbotResponse.innerText = "Error: " + error.message;
+            }
+        }
+    </script>
 </head>
 <body>
-    <div class="container">
+    <div class="chat-container">
         <h1>Your Smart Chatbot</h1>
-        <textarea id="userInput" placeholder="Type your question here"></textarea><br>
-        <button onclick="sendMessage()">Send</button>
-        <p id="chatOutput"></p>
+        <textarea id="messageInput" placeholder="Type your message here"></textarea><br>
+        <button onclick="handleChatSubmit()">Send</button>
+        <p id="responseOutput"></p>
     </div>
 </body>
 </html>
