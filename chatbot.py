@@ -1,31 +1,44 @@
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import FileResponse, JSONResponse
 import openai
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 import os
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
 
-app = FastAPI() 
+# Load environment variables from .env file
 load_dotenv()
+
+# Create FastAPI app
+app = FastAPI()
+
+# Set OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-class ChatRequest(BaseModel):
-    message: str
+# Serve the index.html file
+@app.get("/")
+async def serve_index():
+    file_path = "./index.html"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="index.html not found")
+    return FileResponse(file_path)
 
-@app.post("/chats/")
-async def chat(request: ChatRequest):
+# Chat endpoint
+@app.post("/chat")
+async def chat(request: Request):
+    data = await request.json()
+    user_input = data.get("message", "")
+    if not user_input:
+        raise HTTPException(status_code=400, detail="No input provided")
+
     try:
+        # Updated API call
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are the best assistant."},
-                {"role": "user", "content": request.message}
-            ],
-            max_tokens=1000
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": user_input}
+            ]
         )
-        reply = response["choices"][0]["message"]["content"]
-        return {"reply": reply}
+        message = response['choices'][0]['message']['content']
+        return JSONResponse(content={"reply": message})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-        
